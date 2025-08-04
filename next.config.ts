@@ -1,7 +1,18 @@
-import type { NextConfig } from "next";
+import type {NextConfig} from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  devIndicators: false,
+
+  webpack: (config) => {
+    config.module.rules.push({
+      test: /\.(glb|gltf)$/,
+      type: "asset/resource",
+    });
+    return config;
+  },
+  experimental: {
+    esmExternals: false,
+  },
 };
 
 export default nextConfig;
