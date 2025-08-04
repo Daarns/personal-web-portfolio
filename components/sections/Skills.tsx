@@ -3,6 +3,13 @@ import dynamic from "next/dynamic";
 import {useState, useRef, useEffect} from "react";
 import {motion, useInView} from "framer-motion";
 
+interface TechInfo {
+  name: string;
+  description: string;
+  level?: string;
+  category: string;
+}
+
 const Keycaps3D = dynamic(
   () => import("../../app/components/Keycaps/Keycaps"),
   {
@@ -16,7 +23,7 @@ const Keycaps3D = dynamic(
 );
 
 export default function Skills() {
-  const [hoveredTech, setHoveredTech] = useState(null);
+  const [hoveredTech, setHoveredTech] = useState<TechInfo | null>(null);
   const [loadingPhase, setLoadingPhase] = useState("initial"); // 'initial', 'loading', 'ready', 'animating', 'complete'
   const [is3DLoaded, setIs3DLoaded] = useState(false);
   const ref = useRef(null);

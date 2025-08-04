@@ -1,21 +1,46 @@
 "use client";
 import Link from "next/link";
-import { Github, Linkedin, Mail, ExternalLink, Heart, ArrowUp } from "lucide-react";
+import {
+  Github,
+  Linkedin,
+  Mail,
+  ExternalLink,
+  Heart,
+  ArrowUp,
+} from "lucide-react";
 import { useState, useEffect } from "react";
 
 const Footer = () => {
   const [showScrollTop, setShowScrollTop] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const [lastUpdated, setLastUpdated] = useState("Loading...");
 
   // Prevent hydration mismatch by only rendering after mount
   useEffect(() => {
     setMounted(true);
+    
+    // Fetch build info
+    fetch('/build-info.json')
+      .then(response => response.json())
+      .then(data => {
+        setLastUpdated(data.lastCommitDate || "Unknown");
+      })
+      .catch(error => {
+        console.warn('Could not fetch build info:', error);
+        // Fallback to current date
+        const fallbackDate = new Date().toLocaleDateString('en-US', {
+          year: 'numeric',
+          month: 'short',
+          day: 'numeric'
+        });
+        setLastUpdated(fallbackDate);
+      });
   }, []);
 
   // Show scroll to top button when scrolled down
   useEffect(() => {
     if (!mounted) return;
-    
+
     const handleScroll = () => {
       setShowScrollTop(window.scrollY > 400);
     };
@@ -29,40 +54,45 @@ const Footer = () => {
   };
 
   // Static values to prevent hydration mismatch
-  const currentYear = 2025;
-  const lastUpdated = "Aug 3, 2025"; // Static date
+  const currentYear = new Date().getFullYear();
 
   const socialLinks = [
     {
       name: "GitHub",
-      url: "https://github.com/Daarns", // Ganti dengan GitHub Anda
+      url: "https://github.com/Daarns",
       icon: Github,
-      description: "View my code"
+      description: "View my code",
     },
     {
       name: "LinkedIn",
-      url: "https://linkedin.com/in/m-nandana-aruna-apta-baswara-a21291289", // Ganti dengan LinkedIn Anda
+      url: "https://linkedin.com/in/m-nandana-aruna-apta-baswara-a21291289",
       icon: Linkedin,
-      description: "Connect with me"
+      description: "Connect with me",
     },
     {
       name: "Email",
-      url: "mailto:nandana219@gmail.com", // Ganti dengan email Anda
+      url: "mailto:nandana219@gmail.com",
       icon: Mail,
-      description: "Send me a message"
-    }
+      description: "Send me a message",
+    },
   ];
 
   const quickLinks = [
     { name: "About", href: "#about" },
     { name: "Skills", href: "#skills" },
     { name: "Projects", href: "#projects" },
-    { name: "Contact", href: "#contact" }
+    { name: "Contact", href: "#contact" },
   ];
 
   const techStack = [
-    "JavaScript", "PHP", "Python", "Laravel", 
-    "CodeIgniter", "FastAPI", "MySQL", "Figma"
+    "JavaScript",
+    "PHP",
+    "Python",
+    "Laravel",
+    "CodeIgniter",
+    "FastAPI",
+    "MySQL",
+    "Figma",
   ];
 
   // Don't render until mounted to prevent hydration mismatch
@@ -70,9 +100,7 @@ const Footer = () => {
     return (
       <footer className="relative bg-card border-t border-border">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-          <div className="text-center text-muted-foreground">
-            Loading...
-          </div>
+          <div className="text-center text-muted-foreground">Loading...</div>
         </div>
       </footer>
     );
@@ -84,18 +112,17 @@ const Footer = () => {
         {/* Main Footer Content */}
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-            
             {/* Brand & Description */}
             <div className="lg:col-span-2">
               <h3 className="text-xl font-bold text-foreground mb-4">
                 M Nandana Aruna Apta Baswara
               </h3>
               <p className="text-muted-foreground mb-6 max-w-md leading-relaxed">
-                Backend-focused Web Developer passionate about creating efficient, 
-                scalable solutions. Always eager to learn new technologies and 
-                contribute to meaningful projects.
+                Backend-focused Web Developer passionate about creating
+                efficient, scalable solutions. Always eager to learn new
+                technologies and contribute to meaningful projects.
               </p>
-              
+
               {/* Social Links */}
               <div className="flex space-x-4">
                 {socialLinks.map((social) => {
@@ -110,7 +137,7 @@ const Footer = () => {
                       title={social.description}
                     >
                       <Icon className="w-5 h-5 text-muted-foreground group-hover:text-primary transition-colors duration-300" />
-                      
+
                       {/* Tooltip */}
                       <div className="absolute -top-10 left-1/2 transform -translate-x-1/2 bg-background border border-border rounded-md px-2 py-1 text-xs text-foreground opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none whitespace-nowrap">
                         {social.description}
@@ -157,7 +184,7 @@ const Footer = () => {
                   </span>
                 ))}
               </div>
-              
+
               {/* Contact Info */}
               <div className="mt-6">
                 <h5 className="text-sm font-medium text-foreground mb-2">
@@ -171,35 +198,26 @@ const Footer = () => {
           </div>
         </div>
 
-        {/* Bottom Bar */}
+        {/* Bottom Bar - UPDATED dengan 3 kolom layout */}
         <div className="border-t border-border">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-            <div className="flex flex-col sm:flex-row justify-between items-center space-y-4 sm:space-y-0">
+            <div className="flex flex-col lg:flex-row justify-between items-center space-y-4 lg:space-y-0">
               
-              {/* Copyright */}
-              <div className="flex items-center text-sm text-muted-foreground">
-                <span>© {currentYear} M Nandana Aruna Apta Baswara. Made with</span>
-                <Heart className="w-4 h-4 mx-1 text-red-500 fill-current animate-pulse" />
+              {/* Made with Love - Left */}
+              <div className="flex items-center gap-3 text-sm text-muted-foreground order-2 lg:order-1">
+                <span>Made with</span>
+                <Heart className="w-4 h-4 text-red-500 fill-current animate-pulse" />
                 <span>using Next.js & Three.js</span>
               </div>
 
-              {/* Additional Links */}
-              <div className="flex items-center space-x-6 text-sm">
-                <Link 
-                  href="/privacy" 
-                  className="text-muted-foreground hover:text-primary transition-colors duration-300"
-                >
-                  Privacy Policy
-                </Link>
-                <Link 
-                  href="/terms" 
-                  className="text-muted-foreground hover:text-primary transition-colors duration-300"
-                >
-                  Terms of Use
-                </Link>
-                <span className="text-muted-foreground">
-                  Last updated: {lastUpdated}
-                </span>
+              {/* Copyright - Center */}
+              <div className="text-sm text-muted-foreground text-center order-1 lg:order-2">
+                <span>© {currentYear} M Nandana Aruna Apta Baswara</span>
+              </div>
+
+              {/* Last Updated - Right */}
+              <div className="text-xs text-muted-foreground order-3">
+                <span>Last updated: {lastUpdated}</span>
               </div>
             </div>
           </div>

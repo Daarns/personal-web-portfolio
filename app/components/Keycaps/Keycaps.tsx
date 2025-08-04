@@ -6,6 +6,31 @@ import * as THREE from "three";
 
 const keycapsGLB = "/assets/keycaps/keycaps.glb";
 
+// ✅ ADD TYPE DEFINITIONS
+interface TechInfo {
+  name: string;
+  description: string;
+  level: string;
+  category: string;
+}
+
+interface AnimatedKeycapGroupProps {
+  keycap: THREE.Object3D;
+  logo: THREE.Object3D | null;
+  isHovered: boolean;
+  onHover: (name: string, isHovering: boolean) => void;
+  animationDelay?: number;
+  startAnimation?: boolean;
+  onAnimationComplete?: () => void;
+}
+
+interface Keycaps3DProps {
+  onHover?: (techInfo: TechInfo | null) => void;
+  onLoaded?: () => void;
+  startAnimation?: boolean;
+  onAnimationComplete?: () => void;
+}
+
 // Urutan animasi keycaps dengan timing yang lebih smooth
 const KEYCAP_ANIMATION_ORDER = [
   'java', 'js', 'php', 'mysql', 'codeigniter', 
@@ -21,8 +46,8 @@ const ANIMATION_CONFIG = {
   TOTAL_DURATION: 6.0 // Total durasi untuk semua animasi selesai
 };
 
-// Tech info database (sama seperti sebelumnya)
-const techInfo = {
+// Tech info database
+const techInfo: Record<string, TechInfo> = {
   js: {
     name: "JavaScript",
     description: "Dynamic programming language for web development and interactive applications",
@@ -85,36 +110,37 @@ const techInfo = {
   }
 };
 
-// Enhanced clone function (sama seperti sebelumnya)
-function safeClone(object) {
+// ✅ FIXED: Enhanced clone function with proper types
+function safeClone(object: THREE.Object3D): THREE.Object3D | null {
   if (!object) return null;
   
   try {
     const cloned = object.clone();
     
-    if (cloned.material) {
-      if (Array.isArray(cloned.material)) {
-        cloned.material = cloned.material.map(mat => {
+    if ((cloned as THREE.Mesh).material) {
+      const mesh = cloned as THREE.Mesh;
+      if (Array.isArray(mesh.material)) {
+        mesh.material = mesh.material.map((mat: THREE.Material) => {
           if (!mat) return mat;
           const clonedMat = mat.clone();
           
-          if (mat.map && mat.map.image) {
+          if ('map' in mat && mat.map && mat.map instanceof THREE.Texture && mat.map.image) {
             clonedMat.transparent = true;
-            clonedMat.alphaTest = 0.1;
-            clonedMat.side = THREE.DoubleSide;
-            clonedMat.depthWrite = false;
+            if ('alphaTest' in clonedMat) clonedMat.alphaTest = 0.1;
+            if ('side' in clonedMat) clonedMat.side = THREE.DoubleSide;
+            if ('depthWrite' in clonedMat) clonedMat.depthWrite = false;
           }
           
           return clonedMat;
         });
       } else {
-        cloned.material = cloned.material.clone();
+        mesh.material = mesh.material.clone();
         
-        if (cloned.material.map && cloned.material.map.image) {
-          cloned.material.transparent = true;
-          cloned.material.alphaTest = 0.1;
-          cloned.material.side = THREE.DoubleSide;
-          cloned.material.depthWrite = false;
+        if ('map' in mesh.material && mesh.material.map && mesh.material.map instanceof THREE.Texture && mesh.material.map.image) {
+          mesh.material.transparent = true;
+          if ('alphaTest' in mesh.material) mesh.material.alphaTest = 0.1;
+          if ('side' in mesh.material) mesh.material.side = THREE.DoubleSide;
+          if ('depthWrite' in mesh.material) mesh.material.depthWrite = false;
         }
       }
     }
@@ -126,44 +152,46 @@ function safeClone(object) {
   }
 }
 
-// Enhanced material opacity function (sama seperti sebelumnya)
-function setMaterialOpacity(object, opacity) {
-  if (!object || !object.material) return;
-  
+// ✅ FIXED: Enhanced material opacity function with proper types
+function setMaterialOpacity(object: THREE.Object3D, opacity: number): void {
+  // Only Mesh objects have 'material'
+  if (!object || !(object instanceof THREE.Mesh)) return;
+
   try {
-    if (Array.isArray(object.material)) {
-      object.material.forEach(mat => {
-        if (mat && typeof mat.opacity !== 'undefined') {
+    const material = object.material;
+    if (Array.isArray(material)) {
+      material.forEach((mat: THREE.Material) => {
+        if (mat && 'opacity' in mat && typeof mat.opacity !== 'undefined') {
           mat.opacity = opacity;
-          
-          if (mat.map && mat.map.image) {
+
+          if ('map' in mat && mat.map && mat.map instanceof THREE.Texture && mat.map.image) {
             mat.transparent = true;
-            mat.alphaTest = 0.1;
+            if ('alphaTest' in mat) mat.alphaTest = 0.1;
           } else {
             mat.transparent = opacity < 1;
           }
-          
+
           mat.needsUpdate = true;
         }
       });
-    } else if (object.material && typeof object.material.opacity !== 'undefined') {
-      object.material.opacity = opacity;
-      
-      if (object.material.map && object.material.map.image) {
-        object.material.transparent = true;
-        object.material.alphaTest = 0.1;
+    } else if (material && 'opacity' in material && typeof material.opacity !== 'undefined') {
+      material.opacity = opacity;
+
+      if ('map' in material && material.map && material.map instanceof THREE.Texture && material.map.image) {
+        material.transparent = true;
+        if ('alphaTest' in material) material.alphaTest = 0.1;
       } else {
-        object.material.transparent = opacity < 1;
+        material.transparent = opacity < 1;
       }
-      
-      object.material.needsUpdate = true;
+
+      material.needsUpdate = true;
     }
   } catch (error) {
     console.warn('Failed to set material opacity:', error);
   }
 }
 
-// Enhanced AnimatedKeycapGroup dengan timing yang lebih halus
+// ✅ FIXED: Enhanced AnimatedKeycapGroup with proper types
 function AnimatedKeycapGroup({ 
   keycap, 
   logo, 
@@ -172,27 +200,28 @@ function AnimatedKeycapGroup({
   animationDelay = 0, 
   startAnimation = false,
   onAnimationComplete 
-}) {
-  const groupRef = useRef();
-  const logoRef = useRef();
-  const keycapRef = useRef();
-  const logoMeshRef = useRef();
+}: AnimatedKeycapGroupProps) {
+  // ✅ ALL HOOKS FIRST - NO CONDITIONS BEFORE HOOKS
+  const groupRef = useRef<THREE.Group>(null);
+  const logoRef = useRef<THREE.Group>(null);
+  const keycapRef = useRef<THREE.Object3D>(null);
+  const logoMeshRef = useRef<THREE.Object3D>(null);
   const [hasAnimated, setHasAnimated] = useState(false);
-  const [animationStartTime, setAnimationStartTime] = useState(null);
+  const [animationStartTime, setAnimationStartTime] = useState<number | null>(null);
+  
+  // ✅ useMemo hooks with proper types
+  const clonedKeycap = useMemo(() => safeClone(keycap), [keycap]);
+  const clonedLogo = useMemo(() => logo ? safeClone(logo) : null, [logo]);
+  
+  // ✅ CALCULATE VALUES INSIDE HOOK - NO EARLY RETURNS
+  const isValidKeycap = keycap && keycap.position && clonedKeycap;
+  const initialY = isValidKeycap ? keycap.position.y + ANIMATION_CONFIG.DROP_HEIGHT : 0;
+  const finalY = isValidKeycap ? keycap.position.y : 0;
 
-  // Safety checks
-  if (!keycap || !keycap.position) {
-    console.warn('Invalid keycap object:', keycap);
-    return null;
-  }
-
-  // Initial position untuk animasi
-  const initialY = keycap.position.y + ANIMATION_CONFIG.DROP_HEIGHT;
-  const finalY = keycap.position.y;
-
-  // Enhanced entrance animation
+  // ✅ useFrame MUST BE CALLED UNCONDITIONALLY
   useFrame((state, delta) => {
-    if (!groupRef.current) return;
+    // Early exit inside useFrame is OK
+    if (!groupRef.current || !isValidKeycap) return;
 
     try {
       // Trigger animation start
@@ -210,7 +239,7 @@ function AnimatedKeycapGroup({
           
           if (progress < 1) {
             // Enhanced easing function untuk smooth bounce
-            const easeOutBounce = (t) => {
+            const easeOutBounce = (t: number): number => {
               const n1 = 7.5625;
               const d1 = 2.75;
               
@@ -285,7 +314,7 @@ function AnimatedKeycapGroup({
       console.warn('Animation frame error:', error);
     }
     
-    // KEMBALIKAN KE GAYA LAMA: Logo floating animation yang subtle
+    // Logo floating animation yang subtle
     if (logoRef.current && hasAnimated) {
       try {
         if (isHovered) {
@@ -301,12 +330,9 @@ function AnimatedKeycapGroup({
     }
   });
 
-  // Clone objects safely
-  const clonedKeycap = useMemo(() => safeClone(keycap), [keycap]);
-  const clonedLogo = useMemo(() => logo ? safeClone(logo) : null, [logo]);
-
-  if (!clonedKeycap) {
-    console.warn('Failed to clone keycap');
+  // ✅ NOW conditional rendering is OK - AFTER all hooks
+  if (!isValidKeycap) {
+    console.warn('Invalid keycap object:', keycap);
     return null;
   }
 
@@ -316,13 +342,13 @@ function AnimatedKeycapGroup({
       position={[keycap.position.x, hasAnimated ? finalY : initialY, keycap.position.z]}
       onPointerEnter={(e) => {
         e.stopPropagation();
-        if (hasAnimated && onHover) {
+        if (hasAnimated && onHover && keycap.name) {
           onHover(keycap.name, true);
         }
       }}
       onPointerLeave={(e) => {
         e.stopPropagation();
-        if (hasAnimated && onHover) {
+        if (hasAnimated && onHover && keycap.name) {
           onHover(keycap.name, false);
         }
       }}
@@ -371,10 +397,9 @@ export default function Keycaps3D({
   onLoaded, 
   startAnimation = false, 
   onAnimationComplete 
-}) {
+}: Keycaps3DProps) {
   const { scene } = useGLTF(keycapsGLB);
-  const [hoveredKeycap, setHoveredKeycap] = useState(null);
-  const [completedAnimations, setCompletedAnimations] = useState(0);
+  const [hoveredKeycap, setHoveredKeycap] = useState<string | null>(null);
 
   // POSISI TETAP SAMA
   const positionX = 0;
@@ -390,7 +415,7 @@ export default function Keycaps3D({
   const cameraY = 4;
   const cameraZ = 6;
 
-  const rotationRadians = [
+  const rotationRadians: [number, number, number] = [
     (rotationX * Math.PI) / 180,
     (rotationY * Math.PI) / 180,
     (rotationZ * Math.PI) / 180,
@@ -401,27 +426,23 @@ export default function Keycaps3D({
     if (scene && onLoaded) {
       const timer = setTimeout(() => {
         onLoaded();
-      }, 500); // Small delay to ensure full loading
+      }, 500);
       
       return () => clearTimeout(timer);
     }
   }, [scene, onLoaded]);
 
-  // Track animation completion
+  // ✅ SIMPLIFIED animation tracking without unused state
   const handleKeycapAnimationComplete = () => {
-    setCompletedAnimations(prev => {
-      const newCount = prev + 1;
-      
-      // All animations completed
-      if (newCount >= KEYCAP_ANIMATION_ORDER.length && onAnimationComplete) {
-        setTimeout(() => onAnimationComplete(), 500);
-      }
-      
-      return newCount;
-    });
+    // Simple timeout-based completion check
+    if (onAnimationComplete) {
+      setTimeout(() => {
+        onAnimationComplete();
+      }, ANIMATION_CONFIG.TOTAL_DURATION * 1000);
+    }
   };
 
-  // Enhanced keycap mapping (sama seperti sebelumnya)
+  // Enhanced keycap mapping
   const keycapLogoMapping = useMemo(() => {
     if (!scene || !scene.children) {
       console.warn('Scene not loaded yet');
@@ -432,46 +453,53 @@ export default function Keycaps3D({
       const keycaps = scene.children.slice(0, 10).filter(child => child && child.position);
       const logos = scene.children.slice(10).filter(child => child && child.position);
       
-      const mappedKeycaps = keycaps.map((keycap) => {
-        if (!keycap || !keycap.name) return null;
-        
-        const keycapName = keycap.name.toLowerCase();
-        
-        const matchingLogo = logos.find((logo) => {
-          if (!logo || !logo.name) return false;
+      const mappedKeycaps = keycaps
+        .map((keycap) => {
+          if (!keycap || !keycap.name) return undefined;
           
-          const logoName = logo.name.toLowerCase();
+          const keycapName = keycap.name.toLowerCase();
           
-          if (keycapName.includes('js') && logoName.includes('js')) return true;
-          if (keycapName.includes('php') && logoName.includes('php')) return true;
-          if (keycapName.includes('python') && logoName.includes('python')) return true;
-          if (keycapName.includes('java') && logoName.includes('java') && !logoName.includes('script')) return true;
-          if (keycapName.includes('laravel') && logoName.includes('laravel')) return true;
-          if (keycapName.includes('codeigniter') && logoName.includes('codeigniter')) return true;
-          if (keycapName.includes('mysql') && logoName.includes('mysql')) return true;
-          if (keycapName.includes('fastapi') && logoName.includes('fastapi')) return true;
-          if (keycapName.includes('figma') && logoName.includes('figma')) return true;
-          if (keycapName.includes('springboot') && logoName.includes('springboot')) return true;
+          const matchingLogo = logos.find((logo) => {
+            if (!logo || !logo.name) return false;
+            
+            const logoName = logo.name.toLowerCase();
+            
+            if (keycapName.includes('js') && logoName.includes('js')) return true;
+            if (keycapName.includes('php') && logoName.includes('php')) return true;
+            if (keycapName.includes('python') && logoName.includes('python')) return true;
+            if (keycapName.includes('java') && logoName.includes('java') && !logoName.includes('script')) return true;
+            if (keycapName.includes('laravel') && logoName.includes('laravel')) return true;
+            if (keycapName.includes('codeigniter') && logoName.includes('codeigniter')) return true;
+            if (keycapName.includes('mysql') && logoName.includes('mysql')) return true;
+            if (keycapName.includes('fastapi') && logoName.includes('fastapi')) return true;
+            if (keycapName.includes('figma') && logoName.includes('figma')) return true;
+            if (keycapName.includes('springboot') && logoName.includes('springboot')) return true;
+            
+            return false;
+          });
           
-          return false;
-        });
-
-        let animationOrder = KEYCAP_ANIMATION_ORDER.length;
-        
-        for (let i = 0; i < KEYCAP_ANIMATION_ORDER.length; i++) {
-          if (keycapName.includes(KEYCAP_ANIMATION_ORDER[i])) {
-            animationOrder = i;
-            break;
+          let animationOrder = KEYCAP_ANIMATION_ORDER.length;
+          
+          for (let i = 0; i < KEYCAP_ANIMATION_ORDER.length; i++) {
+            if (keycapName.includes(KEYCAP_ANIMATION_ORDER[i])) {
+              animationOrder = i;
+              break;
+            }
           }
-        }
-        
-        return {
-          keycap,
-          logo: matchingLogo || null,
-          animationOrder,
-          animationDelay: animationOrder * ANIMATION_CONFIG.CASCADE_DELAY
-        };
-      }).filter(Boolean);
+          
+          return {
+            keycap,
+            logo: matchingLogo || null,
+            animationOrder,
+            animationDelay: animationOrder * ANIMATION_CONFIG.CASCADE_DELAY
+          };
+        })
+        .filter((item): item is {
+          keycap: THREE.Object3D;
+          logo: THREE.Object3D | null;
+          animationOrder: number;
+          animationDelay: number;
+        } => !!item);
 
       return mappedKeycaps.sort((a, b) => a.animationOrder - b.animationOrder);
     } catch (error) {
@@ -480,7 +508,7 @@ export default function Keycaps3D({
     }
   }, [scene]);
 
-  const handleHover = (keycapName, isHovering) => {
+  const handleHover = (keycapName: string, isHovering: boolean) => {
     if (!keycapName) return;
     
     try {
@@ -519,7 +547,7 @@ export default function Keycaps3D({
           alpha: true,
           powerPreference: "high-performance"
         }}
-        dpr={Math.min(window.devicePixelRatio, 2)}
+        dpr={typeof window !== 'undefined' ? Math.min(window.devicePixelRatio, 2) : 1}
         onError={(error) => console.warn('Canvas error:', error)}
       >
         <ambientLight intensity={0.7} />

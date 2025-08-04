@@ -33,7 +33,7 @@ function useElementWidth(ref) {
 
 export const ScrollVelocity = ({
   scrollContainerRef,
-  texts = [],
+  texts = ["Web Developer", "Backend Developer"],
   velocity = 100,
   className = "",
   damping = 50,
@@ -46,6 +46,15 @@ export const ScrollVelocity = ({
   scrollerStyle,
   enableSkewOnScroll = true,
 }) => {
+  // ✅ Add type validation
+  const validTexts = Array.isArray(texts) ? texts : [];
+  
+  // ✅ Early return if no texts
+  if (validTexts.length === 0) {
+    console.warn('ScrollVelocity: No texts provided');
+    return null;
+  }
+
   function VelocityText({
     children,
     baseVelocity = velocity,
@@ -86,6 +95,7 @@ export const ScrollVelocity = ({
     
     const copyRef = useRef(null);
     const copyWidth = useElementWidth(copyRef);
+    const directionFactor = useRef(1);
 
     function wrap(min, max, v) {
       const range = max - min;
@@ -98,7 +108,6 @@ export const ScrollVelocity = ({
       return `${wrap(-copyWidth, 0, v)}px`;
     });
 
-    const directionFactor = useRef(1);
     useAnimationFrame((t, delta) => {
       let moveBy = directionFactor.current * baseVelocity * (delta / 1000);
 
@@ -127,11 +136,11 @@ export const ScrollVelocity = ({
 
     return (
       <div
-        className={`${parallaxClassName} relative overflow-hidden`}
+        className={`${parallaxClassName || ''} relative overflow-hidden`}
         style={parallaxStyle}
       >
         <motion.div
-          className={`${scrollerClassName} flex whitespace-nowrap text-center font-sans text-4xl font-bold tracking-[-0.02em] drop-shadow md:text-[5rem] md:leading-[5rem]`}
+          className={`${scrollerClassName || ''} flex whitespace-nowrap text-center font-sans text-4xl font-bold tracking-[-0.02em] drop-shadow md:text-[5rem] md:leading-[5rem]`}
           style={{ x, ...scrollerStyle, ...(enableSkewOnScroll && { skewX }) }}
         >
           {spans}
@@ -142,7 +151,7 @@ export const ScrollVelocity = ({
 
   return (
     <section>
-      {texts.map((text, index) => (
+      {validTexts.map((text, index) => (
         <VelocityText
           key={index}
           className={className}

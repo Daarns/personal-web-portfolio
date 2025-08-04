@@ -47,9 +47,17 @@ export default function About() {
               status="Online"
               contactText="Contact Me"
               avatarUrl="/assets/ProfileCard/nandanas.png"
+              iconUrl="/assets/ProfileCard/daarns.png"
+              grainUrl={undefined} // or provide grain texture URL
+              behindGradient={null} // use default
+              innerGradient={null} // use default
+              showBehindGradient={true}
+              className=""
+              miniAvatarUrl="/assets/ProfileCard/nandanas.png"
               showUserInfo={true}
               enableTilt={true}
               enableMobileTilt={false}
+              mobileTiltSensitivity={5}
               onContactClick={() =>
                 window.open(
                   "https://mail.google.com/mail/?view=cm&fs=1&to=nandana219@gmail.com",

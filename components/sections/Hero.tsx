@@ -35,6 +35,7 @@ export default function Hero() {
           {/* ScrollVelocity di belakang Lanyard */}
           <div className="w-full max-w-5xl overflow-hidden mx-auto z-10">
             <ScrollVelocity
+              scrollContainerRef={null}
               texts={[
                 "Web Developer",
                 "Backend Developer",
@@ -42,6 +43,10 @@ export default function Hero() {
               velocity={50}
               numCopies={6}
               className="custom-scroll-text"
+              parallaxClassName=""
+              scrollerClassName=""
+              parallaxStyle={{}}
+              scrollerStyle={{}}
             />
           </div>
         </div>

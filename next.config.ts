@@ -10,9 +10,6 @@ const nextConfig: NextConfig = {
     });
     return config;
   },
-  experimental: {
-    esmExternals: false,
-  },
 };
 
 export default nextConfig;
