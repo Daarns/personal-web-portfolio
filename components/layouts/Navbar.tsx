@@ -1,15 +1,23 @@
 "use client";
-import {useState, useEffect} from "react";
+import { useState, useEffect } from "react";
+import { motion } from "framer-motion";
 
 export default function Navbar() {
   const [activeSection, setActiveSection] = useState("hero");
   const [isScrolled, setIsScrolled] = useState(false);
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (!mounted) return;
+
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 50);
 
-      const sections = ["hero", "about", "skills", "projects", "contact"];
+      const sections = ["hero", "about", "skills", "projects"];
       const current = sections.find((section) => {
         const element = document.getElementById(section);
         if (element) {
@@ -24,25 +32,28 @@ export default function Navbar() {
 
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
+  }, [mounted]);
 
   const scrollToSection = (sectionId: string) => {
     const element = document.getElementById(sectionId);
     if (element) {
-      element.scrollIntoView({behavior: "smooth"});
+      element.scrollIntoView({ behavior: "smooth" });
     }
   };
 
   const navItems = [
-    {id: "hero", label: "Home"},
-    {id: "about", label: "About"},
-    {id: "skills", label: "Skills"},
-    {id: "projects", label: "Projects"},
+    { id: "hero", label: "Home" },
+    { id: "about", label: "About" },
+    { id: "skills", label: "Skills" },
+    { id: "projects", label: "Projects" },
   ];
 
+  if (!mounted) return null;
+
   return (
+    // HANYA TAMPIL DI DESKTOP
     <nav
-      className={`fixed top-0 w-full z-50 transition-all duration-300 ${
+      className={`fixed top-0 w-full z-50 transition-all duration-300 hidden md:block ${
         isScrolled
           ? "bg-card/80 backdrop-blur-md shadow-dark-lg border-b border-border"
           : "bg-transparent"
@@ -50,67 +61,43 @@ export default function Navbar() {
     >
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center py-4">
-          {/* Logo dengan Navy Blue Theme */}
-          <div className="text-xl font-bold">
-            <span className="text-white">Nandana</span>
-          </div>
+          {/* Logo */}
+          <motion.div
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            className="text-xl font-bold"
+          >
+            <span className="text-foreground">Nandana</span>
+          </motion.div>
 
-          {/* Navigation Items */}
-          <div className="hidden md:flex space-x-8">
-            {navItems.map((item) => (
-              <button
+          {/* Desktop Navigation */}
+          <div className="flex space-x-8">
+            {navItems.map((item, index) => (
+              <motion.button
                 key={item.id}
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: index * 0.1 }}
                 onClick={() => scrollToSection(item.id)}
-                className={`transition-all duration-200 ${
+                className={`transition-all duration-200 relative ${
                   activeSection === item.id
-                    ? "text-primary font-medium underline underline-offset-4 blue-text"
+                    ? "text-primary font-medium"
                     : "text-muted-foreground hover:text-primary"
                 }`}
-                style={
-                  activeSection === item.id
-                    ? {
-                        textDecorationColor: "transparent",
-                        backgroundImage:
-                          "linear-gradient(to right, #60a5fa 65%, rgba(96,165,250,0) 100%)",
-                        backgroundRepeat: "no-repeat",
-                        backgroundPosition: "0 100%",
-                        backgroundSize: "100% 2px",
-                        paddingBottom: "2px",
-                        transition:
-                          "background-size 0.4s cubic-bezier(0.4,0,0.2,1)",
-                      }
-                    : {
-                        // Agar animasi reverse saat tidak aktif
-                        backgroundSize: "0% 2px",
-                        backgroundRepeat: "no-repeat",
-                        backgroundPosition: "0 100%",
-                        transition:
-                          "background-size 0.4s cubic-bezier(0.4,0,0.2,1)",
-                      }
-                }
               >
                 {item.label}
-              </button>
+                
+                {/* Active Indicator */}
+                {activeSection === item.id && (
+                  <motion.div
+                    layoutId="activeSection"
+                    className="absolute -bottom-1 left-0 right-0 h-0.5 bg-primary"
+                    initial={false}
+                    transition={{ type: "spring", stiffness: 380, damping: 30 }}
+                  />
+                )}
+              </motion.button>
             ))}
-          </div>
-
-          {/* Mobile Menu Button */}
-          <div className="md:hidden">
-            <button className="text-muted-foreground hover:text-primary transition-colors">
-              <svg
-                className="w-6 h-6"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M4 6h16M4 12h16M4 18h16"
-                />
-              </svg>
-            </button>
           </div>
         </div>
       </div>

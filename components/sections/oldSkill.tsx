@@ -6,7 +6,7 @@ import {motion, useInView} from "framer-motion";
 interface TechInfo {
   name: string;
   description: string;
-  level: string;
+  level?: string;
   category: string;
 }
 
@@ -15,7 +15,7 @@ const Keycaps3D = dynamic(
   {
     ssr: false,
     loading: () => (
-      <div className="w-full h-[400px] sm:h-[450px] lg:h-[500px] bg-gray-200 dark:bg-gray-800 animate-pulse rounded-lg flex items-center justify-center">
+      <div className="w-full h-[600px] bg-gray-200 dark:bg-gray-800 animate-pulse rounded-lg flex items-center justify-center">
         <span className="text-gray-500">Loading 3D Model...</span>
       </div>
     ),
@@ -24,7 +24,7 @@ const Keycaps3D = dynamic(
 
 export default function Skills() {
   const [hoveredTech, setHoveredTech] = useState<TechInfo | null>(null);
-  const [loadingPhase, setLoadingPhase] = useState("initial");
+  const [loadingPhase, setLoadingPhase] = useState("initial"); // 'initial', 'loading', 'ready', 'animating', 'complete'
   const [is3DLoaded, setIs3DLoaded] = useState(false);
   const ref = useRef(null);
   const inView = useInView(ref, {once: true, margin: "-100px"});
@@ -49,12 +49,13 @@ export default function Skills() {
     if (loadingPhase === "ready") {
       const animationTimer = setTimeout(() => {
         setLoadingPhase("animating");
-      }, 300);
+      }, 200);
 
       return () => clearTimeout(animationTimer);
     }
   }, [loadingPhase]);
 
+  // Handle 3D model loaded
   const handle3DLoaded = () => {
     setIs3DLoaded(true);
     if (loadingPhase === "loading") {
@@ -62,23 +63,20 @@ export default function Skills() {
     }
   };
 
+  // Handle cascade animation complete
   const handleAnimationComplete = () => {
     setLoadingPhase("complete");
   };
 
-  const handleHover = (tech: TechInfo | null) => {
-    setHoveredTech(tech);
-  };
-
   return (
-    <section ref={ref} id="skills" className="py-16 sm:py-20 lg:py-24">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Header */}
+    <section className="py-20 px-4 sm:px-6 lg:px-8" ref={ref}>
+      <div className="max-w-7xl mx-auto">
+        {/* Animated Header - REDUCED BOTTOM MARGIN */}
         <motion.div
           initial={{opacity: 0, y: 30}}
           animate={inView ? {opacity: 1, y: 0} : {opacity: 0, y: 30}}
           transition={{duration: 0.6, ease: "easeOut"}}
-          className="text-center mb-6 sm:mb-8"
+          className="text-center mb-4"
         >
           <h2 className="text-3xl sm:text-4xl font-bold mb-2">
             Skills & Technologies
@@ -92,8 +90,8 @@ export default function Skills() {
           </p>
         </motion.div>
 
-        {/* COMPACT Loading & Tech Info Display - REDUCED HEIGHT */}
-        <div className="flex justify-center mb-4 h-[80px] sm:h-[100px]">
+        {/* COMPACT Loading & Tech Info Display - REDUCED HEIGHT & MARGIN */}
+        <div className="flex justify-center mb-4 h-[120px]">
           <div className="flex items-center justify-center max-w-lg w-full">
             {/* Simple Loading State - HANYA loading dots tanpa teks */}
             {(loadingPhase === "loading" || loadingPhase === "ready") && (
@@ -101,9 +99,10 @@ export default function Skills() {
                 initial={{opacity: 0}}
                 animate={{opacity: 1}}
                 exit={{opacity: 0}}
-                className="flex items-center gap-2"
+                transition={{duration: 0.3}}
+                className="text-center"
               >
-                <div className="flex space-x-2">
+                <div className="flex items-center justify-center space-x-1">
                   <motion.div
                     className="w-2 h-2 bg-primary rounded-full"
                     animate={{
@@ -113,6 +112,7 @@ export default function Skills() {
                     transition={{
                       duration: 1.2,
                       repeat: Infinity,
+                      delay: 0,
                       ease: "easeInOut",
                     }}
                   />
@@ -152,17 +152,27 @@ export default function Skills() {
                 className="text-center"
                 initial={{opacity: 0, scale: 0.9, y: 10}}
                 animate={{opacity: 1, scale: 1, y: 0}}
-                exit={{opacity: 0, scale: 0.9, y: 10}}
-                transition={{duration: 0.3}}
+                exit={{opacity: 0, scale: 0.9, y: -10}}
+                transition={{duration: 0.25, ease: "easeOut"}}
               >
-                <h3 className="text-lg sm:text-xl font-semibold text-foreground mb-1">
+                <motion.h3
+                  className="text-xl font-bold text-foreground mb-2"
+                  initial={{opacity: 0}}
+                  animate={{opacity: 1}}
+                  transition={{delay: 0.1}}
+                >
                   {hoveredTech.name}
-                </h3>
-                <p className="text-muted-foreground text-sm sm:text-base mb-2 max-w-md mx-auto leading-relaxed">
+                </motion.h3>
+                <motion.p
+                  className="text-muted-foreground text-sm mb-3 leading-relaxed"
+                  initial={{opacity: 0}}
+                  animate={{opacity: 1}}
+                  transition={{delay: 0.15}}
+                >
                   {hoveredTech.description}
-                </p>
+                </motion.p>
                 <motion.div
-                  className="flex items-center justify-center gap-3 text-xs sm:text-sm"
+                  className="flex justify-center gap-3"
                   initial={{opacity: 0, y: 5}}
                   animate={{opacity: 1, y: 0}}
                   transition={{delay: 0.2}}
@@ -184,7 +194,7 @@ export default function Skills() {
           </div>
         </div>
 
-        {/* 3D Keycaps Container - SIGNIFICANTLY REDUCED HEIGHT */}
+        {/* 3D Keycaps Container - REDUCED TOP MARGIN */}
         <motion.div
           initial={{opacity: 0, scale: 0.95}}
           animate={{
@@ -198,8 +208,8 @@ export default function Skills() {
           }}
           className="w-full flex justify-center items-center"
         >
-          {/* SMALLER CONTAINER - Reduced significantly */}
-          <div className="w-full max-w-[750px] sm:max-w-[850px] lg:max-w-[1000px] h-[350px] sm:h-[400px] md:h-[450px] lg:h-[500px] flex justify-center items-center relative ml-4 sm:ml-6 md:ml-8 lg:ml-12">
+          {/* CLEAN CONTAINER - tanpa text overlay */}
+          <div className="w-full max-w-[1000px] h-[600px] flex justify-center items-center relative ml-8 md:ml-12 lg:ml-16">
             {/* Minimal Loading Overlay - HANYA spinner tanpa text */}
             <motion.div
               className="absolute inset-0 bg-background/60 backdrop-blur-sm flex items-center justify-center z-10"
@@ -218,32 +228,17 @@ export default function Skills() {
                     : "auto",
               }}
             >
-              <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>
+              <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
             </motion.div>
 
-            {/* 3D Keycaps */}
-            <div className="w-full h-full">
-              <Keycaps3D
-                onHover={handleHover}
-                onLoaded={handle3DLoaded}
-                startAnimation={loadingPhase === "animating"}
-                onAnimationComplete={handleAnimationComplete}
-              />
-            </div>
+            {/* 3D Component */}
+            <Keycaps3D
+              onHover={setHoveredTech}
+              onLoaded={handle3DLoaded}
+              startAnimation={loadingPhase === "animating"}
+              onAnimationComplete={handleAnimationComplete}
+            />
           </div>
-        </motion.div>
-
-        {/* Instruction Text - SMALLER and more compact */}
-        <motion.div
-          initial={{opacity: 0, y: 20}}
-          animate={
-            loadingPhase === "complete"
-              ? {opacity: 1, y: 0}
-              : {opacity: 0, y: 20}
-          }
-          transition={{duration: 0.5, delay: 0.3}}
-          className="text-center mt-4 sm:mt-6"
-        >
         </motion.div>
       </div>
     </section>
