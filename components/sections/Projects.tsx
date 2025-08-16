@@ -14,11 +14,11 @@ export default function Projects() {
       github: "#"
     },
     {
-      title: "Project 3 - Coming Soon",
-      description: "Placeholder untuk project Java SpringBoot.",
-      tech: ["Java", "SpringBoot", "MySQL"],
-      demo: "#", 
-      github: "#"
+      title: "EcommercePro",
+      description: "",
+      tech: ["React JS"],
+      demo: "https://ecommerce-pro-self.vercel.app/", 
+      github: "https://github.com/Daarns/Ecommerce-Pro"
     }
   ]
 
